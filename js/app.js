@@ -35,11 +35,63 @@ import fetch from "isomorphic-fetch"
 
 import DOM from 'react-dom'
 import React, {Component} from 'react'
+import Backbone from "bbfire"
+import CutiesView from "./cutiesView"
+import FavesView from "./favesView"
+
+// ?apikey=
+
+// /legislators?apikey=[your_api_key]
+
+var url = "http://congress.api.sunlightfoundation.com/legislators/"
+
 
 function app() {
-    // start app
-    // new Router()
-    DOM.render(<p>test 2</p>, document.querySelector('.container'))
+    //////////////// Collection
+    var CongressionalCollection = Backbone.Collection.extend({
+        url: "http://congress.api.sunlightfoundation.com/legislators/",
+
+        apiKey: "325ade0da4514bb29ff036144a8bc016",
+
+        parse:function(rawData){
+            console.log(rawData)
+            return rawData.results
+        }
+    })
+
+
+    /////////////// Router
+    var CongressionalRouter = Backbone.Router.extend({
+    	routes: {
+    		"favorites": "handleFaves", 
+    		"*default" : "handleCuties"
+    	},
+
+    	handleCuties: function() {
+            var cc = new CongressionalCollection()
+
+            cc.fetch({
+                data:{
+                    "apikey":cc.apiKey
+                }
+            }).then(function(){
+                DOM.render(<CutiesView congressColl={cc}/>, document.querySelector('.container'))
+                })
+    	},
+
+    	handleFaves: function() {
+    		DOM.render(<FavesView />, document.querySelector('.container'))
+    	},
+
+    	initialize: function() {
+    		Backbone.history.start()
+    	}
+    }) 
+
+    
+    var cr = new CongressionalRouter()
+
+    
 }
 
 app()
